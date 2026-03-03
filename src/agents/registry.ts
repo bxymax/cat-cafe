@@ -6,8 +6,8 @@ class AgentRegistry {
   private providers = new Map<string, AgentProvider>();
 
   constructor() {
-    this.registerProvider('gpt52', new GPT52Provider());
-    this.registerProvider('minimax-m2.5', new MinimaxProvider());
+    this.registerProvider('openai/gpt52', new GPT52Provider());
+    this.registerProvider('minimax/minimax-m2.5', new MinimaxProvider());
   }
 
   registerProvider(model: string, provider: AgentProvider) {
@@ -21,9 +21,9 @@ class AgentRegistry {
     if (!provider) {
       // Fallback routing based on catId
       if (catId === 'frontend') {
-        provider = this.providers.get('minimax-m2.5');
+        provider = this.providers.get('minimax/minimax-m2.5');
       } else {
-        provider = this.providers.get('gpt52');
+        provider = this.providers.get('openai/gpt52');
       }
     }
 

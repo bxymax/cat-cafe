@@ -18,7 +18,7 @@ curl -s -X POST http://localhost:3000/api/chat \
     "userId": "test-user",
     "catId": "architect",
     "message": "Hello, architect cat!",
-    "model": "gpt52"
+    "model": "openai/gpt52"
   }' | jq .
 echo ""
 

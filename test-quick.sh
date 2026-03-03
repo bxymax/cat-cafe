@@ -38,7 +38,7 @@ RESPONSE=$(curl -s -X POST http://localhost:3000/api/chat \
     "userId": "user-123",
     "catId": "architect",
     "message": "Hello, this is a test",
-    "model": "gpt52"
+    "model": "openai/gpt52"
   }')
 
 if echo "$RESPONSE" | grep -q "success"; then
