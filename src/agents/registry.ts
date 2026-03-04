@@ -1,13 +1,19 @@
 import { AgentProvider, CatId, ModelType } from './types';
 import { GPT52Provider } from './providers/gpt52Provider';
 import { MinimaxProvider } from './providers/minimaxProvider';
+import { MockProvider } from './providers/mockProvider';
 
 class AgentRegistry {
   private providers = new Map<string, AgentProvider>();
 
   constructor() {
+    // Register real providers
     this.registerProvider('openai/gpt52', new GPT52Provider());
     this.registerProvider('minimax/minimax-m2.5', new MinimaxProvider());
+
+    // Register mock provider as fallback
+    const mockProvider = new MockProvider();
+    this.registerProvider('mock', mockProvider);
   }
 
   registerProvider(model: string, provider: AgentProvider) {
@@ -15,16 +21,12 @@ class AgentRegistry {
   }
 
   getProvider(catId: CatId, model: ModelType): AgentProvider {
-    // Route based on model preference, with fallback logic
+    // Try to get the requested provider
     let provider = this.providers.get(model);
 
     if (!provider) {
-      // Fallback routing based on catId
-      if (catId === 'frontend') {
-        provider = this.providers.get('minimax/minimax-m2.5');
-      } else {
-        provider = this.providers.get('openai/gpt52');
-      }
+      // Fallback to mock provider for testing
+      provider = this.providers.get('mock');
     }
 
     if (!provider) {

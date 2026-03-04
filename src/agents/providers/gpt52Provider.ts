@@ -13,7 +13,6 @@ export class GPT52Provider implements AgentProvider {
     const args = [
       'run',
       '--model', 'openai/gpt-5.2',
-      '--format', 'json',
       '--title', `${request.userId}_${request.catId}_${request.threadId}`,
       request.message,
     ];
@@ -65,6 +64,7 @@ export class GPT52Provider implements AgentProvider {
       content: finalContent.trim() || outputBuffer.trim() || result.stdout.trim(),
       metadata: {
         model: 'openai/gpt-5.2',
+        catId: 'architect',
         duration: Date.now() - startTime,
       },
     };

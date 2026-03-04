@@ -12,8 +12,7 @@ export class MinimaxProvider implements AgentProvider {
     // Use --title to create a new session with a descriptive name
     const args = [
       'run',
-      '--model', 'minimax/minimax-m2.5',
-      '--format', 'json',
+      '--model', 'minimax-cn/MiniMax-M2.5',
       '--title', `${request.userId}_${request.catId}_${request.threadId}`,
       request.message,
     ];
