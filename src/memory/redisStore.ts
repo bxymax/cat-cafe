@@ -11,9 +11,21 @@ class RedisStore {
   private client: RedisClientType | null = null;
 
   async connect(url: string = 'redis://localhost:6379') {
-    this.client = createClient({ url });
-    this.client.on('error', (err) => console.error('Redis error:', err));
-    await this.client.connect();
+    try {
+      this.client = createClient({
+        url,
+        socket: {
+          connectTimeout: 5000, // 5 second timeout
+          reconnectStrategy: false, // Don't auto-reconnect
+        }
+      });
+      this.client.on('error', (err) => console.error('Redis error:', err));
+      await this.client.connect();
+    } catch (err) {
+      console.warn('Redis connection failed:', err);
+      this.client = null;
+      throw err;
+    }
   }
 
   async addMessage(threadId: string, catId: string, content: string): Promise<Message> {

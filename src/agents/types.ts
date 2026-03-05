@@ -20,5 +20,5 @@ export interface AgentProvider {
   invoke(request: AgentRequest): Promise<AgentResponse>;
 }
 
-export type ModelType = 'openai/gpt52' | 'minimax/minimax-m2.5';
+export type ModelType = 'openai/gpt5.2' | 'minimax/minimax-m2.5';
 export type CatId = 'architect' | 'developer' | 'frontend';

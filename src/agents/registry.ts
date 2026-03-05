@@ -8,7 +8,7 @@ class AgentRegistry {
 
   constructor() {
     // Register real providers
-    this.registerProvider('openai/gpt52', new GPT52Provider());
+    this.registerProvider('openai/gpt5.2', new GPT52Provider());
     this.registerProvider('minimax/minimax-m2.5', new MinimaxProvider());
 
     // Register mock provider as fallback

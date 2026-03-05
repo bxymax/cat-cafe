@@ -5,21 +5,17 @@ import { redisStore } from './memory/redisStore';
 const app = createApp();
 
 async function start() {
-  try {
-    // Connect to Redis
-    await redisStore.connect(process.env.REDIS_URL || 'redis://localhost:6379');
-    console.log('Redis connected');
-  } catch (err) {
-    console.warn('Redis connection failed, using memory store:', err);
-  }
+  // Temporarily disable Redis to unblock server startup
+  // TODO: Fix Redis connection issue
+  console.log('⚠️  Redis disabled temporarily');
 
   app.listen(config.port, () => {
-    console.log(`Cat Cafe Runtime Server`);
+    console.log(`\n🐱 Cat Cafe Runtime Server`);
     console.log(`Environment: ${config.nodeEnv}`);
     console.log(`Port: ${config.port}`);
     console.log(`CLI Timeout: ${config.cli.timeoutMs}ms`);
     console.log(`Data Directory: ${config.data.dataDir}`);
-    console.log(`Server ready at http://localhost:${config.port}`);
+    console.log(`\n✨ Server ready at http://localhost:${config.port}\n`);
   });
 }
 

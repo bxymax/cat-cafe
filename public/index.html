@@ -94,6 +94,7 @@
       border-top: 1px solid #e0e0e0;
       display: flex;
       gap: 10px;
+      position: relative;
     }
     .input-area input {
       flex: 1;
@@ -128,6 +129,39 @@
       color: #666;
       font-size: 14px;
     }
+    .mention-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 20px;
+      right: 20px;
+      background: white;
+      border: 2px solid #667eea;
+      border-radius: 12px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .mention-dropdown.show { display: block; }
+    .mention-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .mention-item:last-child { border-bottom: none; }
+    .mention-item:hover { background: #f5f5f5; }
+    .mention-item.selected { background: #e8eaf6; }
+    .mention-item .cat-name {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+    .mention-item .cat-desc {
+      font-size: 12px;
+      color: #999;
+    }
   </style>
 </head>
 <body>
@@ -135,14 +169,15 @@
     <div class="header">
       <h1>🐱 Cat Café - 三猫协作聊天室</h1>
       <div class="cats">
-        <div class="cat-badge active" data-cat="architect">🎨 架构师 (GPT-5.2)</div>
-        <div class="cat-badge" data-cat="developer">💻 开发者 (GPT-5.2)</div>
-        <div class="cat-badge" data-cat="frontend">🎭 前端 (MiniMax-M2.5)</div>
+        <div class="cat-badge active" data-cat="architect">🎨 布偶猫</div>
+        <div class="cat-badge" data-cat="developer">💻 缅因猫</div>
+        <div class="cat-badge" data-cat="frontend">🎭 暹罗猫</div>
       </div>
     </div>
     <div class="messages" id="messages"></div>
     <div class="input-area">
-      <input type="text" id="messageInput" placeholder="输入消息... (使用 @architect @developer @frontend 召唤猫猫)" />
+      <div class="mention-dropdown" id="mentionDropdown"></div>
+      <input type="text" id="messageInput" placeholder="输入消息... (使用 @ 召唤猫猫)" />
       <button id="sendBtn">发送</button>
     </div>
   </div>
@@ -157,6 +192,21 @@
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
+    const mentionDropdown = document.getElementById('mentionDropdown');
+
+    // Cat definitions with descriptions
+    const cats = [
+      { id: 'architect', name: '🎨 布偶猫', desc: '架构设计 · 价值澄清 · 深度思考', mention: '@布偶猫' },
+      { id: 'developer', name: '💻 缅因猫', desc: '落地验证 · 代码审查 · 细节把控', mention: '@缅因猫' },
+      { id: 'frontend', name: '🎭 暹罗猫', desc: '破框反直觉 · 创意发散 · 视觉设计', mention: '@暹罗猫' }
+    ];
+
+    let mentionState = {
+      isOpen: false,
+      selectedIndex: 0,
+      searchText: '',
+      cursorPos: 0
+    };
 
     // Cat selection
     document.querySelectorAll('.cat-badge').forEach(badge => {
@@ -164,7 +214,127 @@
         document.querySelectorAll('.cat-badge').forEach(b => b.classList.remove('active'));
         badge.classList.add('active');
         currentCat = badge.dataset.cat;
+        console.log('Selected cat:', currentCat);
       });
+    });
+
+    // Mention dropdown functions
+    function showMentionDropdown(searchText = '') {
+      const filtered = cats.filter(cat =>
+        cat.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        cat.mention.toLowerCase().includes(searchText.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        hideMentionDropdown();
+        return;
+      }
+
+      mentionDropdown.innerHTML = filtered.map((cat, idx) => `
+        <div class="mention-item ${idx === mentionState.selectedIndex ? 'selected' : ''}" data-index="${idx}" data-mention="${cat.mention}">
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-desc">${cat.desc}</div>
+        </div>
+      `).join('');
+
+      mentionDropdown.classList.add('show');
+      mentionState.isOpen = true;
+
+      // Add click handlers
+      mentionDropdown.querySelectorAll('.mention-item').forEach(item => {
+        item.addEventListener('click', () => {
+          insertMention(item.dataset.mention);
+        });
+      });
+    }
+
+    function hideMentionDropdown() {
+      mentionDropdown.classList.remove('show');
+      mentionState.isOpen = false;
+      mentionState.selectedIndex = 0;
+    }
+
+    function insertMention(mention) {
+      const input = messageInput;
+      const text = input.value;
+      const cursorPos = input.selectionStart;
+
+      // Find the @ position
+      let atPos = cursorPos - 1;
+      while (atPos >= 0 && text[atPos] !== '@') {
+        atPos--;
+      }
+
+      if (atPos >= 0) {
+        const before = text.substring(0, atPos);
+        const after = text.substring(cursorPos);
+        input.value = before + mention + ' ' + after;
+        input.selectionStart = input.selectionEnd = atPos + mention.length + 1;
+      }
+
+      hideMentionDropdown();
+      input.focus();
+    }
+
+    // Input event handler for @ detection
+    messageInput.addEventListener('input', (e) => {
+      const text = messageInput.value;
+      const cursorPos = messageInput.selectionStart;
+
+      // Check if we just typed @
+      if (text[cursorPos - 1] === '@') {
+        mentionState.cursorPos = cursorPos;
+        mentionState.searchText = '';
+        showMentionDropdown();
+        return;
+      }
+
+      // If dropdown is open, update search
+      if (mentionState.isOpen) {
+        let atPos = cursorPos - 1;
+        while (atPos >= 0 && text[atPos] !== '@' && text[atPos] !== ' ') {
+          atPos--;
+        }
+
+        if (atPos >= 0 && text[atPos] === '@') {
+          mentionState.searchText = text.substring(atPos + 1, cursorPos);
+          showMentionDropdown(mentionState.searchText);
+        } else {
+          hideMentionDropdown();
+        }
+      }
+    });
+
+    // Keyboard navigation for dropdown
+    messageInput.addEventListener('keydown', (e) => {
+      if (!mentionState.isOpen) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const items = mentionDropdown.querySelectorAll('.mention-item');
+        mentionState.selectedIndex = (mentionState.selectedIndex + 1) % items.length;
+        showMentionDropdown(mentionState.searchText);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const items = mentionDropdown.querySelectorAll('.mention-item');
+        mentionState.selectedIndex = (mentionState.selectedIndex - 1 + items.length) % items.length;
+        showMentionDropdown(mentionState.searchText);
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        const items = mentionDropdown.querySelectorAll('.mention-item');
+        if (items[mentionState.selectedIndex]) {
+          insertMention(items[mentionState.selectedIndex].dataset.mention);
+        }
+      } else if (e.key === 'Escape') {
+        hideMentionDropdown();
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!messageInput.contains(e.target) && !mentionDropdown.contains(e.target)) {
+        hideMentionDropdown();
+      }
     });
 
     // Add message to UI
@@ -176,9 +346,9 @@
       header.className = 'message-header';
       const catNames = {
         user: '你',
-        architect: '🎨 架构师',
-        developer: '💻 开发者',
-        frontend: '🎭 前端'
+        architect: '🎨 布偶猫',
+        developer: '💻 缅因猫',
+        frontend: '🎭 暹罗猫'
       };
       header.textContent = catNames[catId] || catId;
 
@@ -208,6 +378,8 @@
       loadingDiv.textContent = '猫猫正在思考...';
       messagesDiv.appendChild(loadingDiv);
 
+      console.log('Sending to cat:', currentCat);
+
       try {
         const response = await fetch(`${API_URL}/chat`, {
           method: 'POST',
@@ -217,12 +389,14 @@
             userId: USER_ID,
             catId: currentCat,
             message: message,
-            model: currentCat === 'frontend' ? 'minimax/minimax-m2.5' : 'openai/gpt52'
+            model: currentCat === 'frontend' ? 'minimax/minimax-m2.5' : 'openai/gpt5.2'
           })
         });
 
         const data = await response.json();
         messagesDiv.removeChild(loadingDiv);
+
+        console.log('Response from:', data.metadata?.catId || currentCat);
 
         if (data.success) {
           addMessage(currentCat, data.response);

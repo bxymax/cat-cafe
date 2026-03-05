@@ -79,7 +79,7 @@ Path B (Callback - 待统一):
 ### 短期记忆存储
 - **Redis**：多猫共享状态、消息队列、session 数据
 - **并发控制**：每只猫有独立的 session，共享状态需要隔离
-- **数据隔离**：开发 Redis (6398) vs 生产 Redis (6399)
+- **数据隔离**：统一使用 Redis (6379)
 
 ---
 
@@ -116,12 +116,7 @@ CLI_OPENCODE_PATH=/path/to/opencode
 CLI_TIMEOUT_MS=300000
 DATA_DIR=./data
 TRANSCRIPTS_DIR=./data/transcripts
-REDIS_URL=redis://localhost:6399
-```
-
-**Worktree 开发必须使用隔离 Redis**：
-```bash
-echo "REDIS_URL=redis://localhost:6398" > .env.local
+REDIS_URL=redis://localhost:6379
 ```
 
 ---

@@ -5,7 +5,7 @@ export const chatRequestSchema = z.object({
   userId: z.string().min(1),
   catId: z.enum(['architect', 'developer', 'frontend']),
   message: z.string().min(1),
-  model: z.enum(['openai/gpt52', 'minimax/minimax-m2.5']),
+  model: z.enum(['openai/gpt5.2', 'minimax/minimax-m2.5']),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

@@ -8,6 +8,7 @@ export interface CliSpawnOptions {
   onStdout?: (data: string) => void;
   onStderr?: (data: string) => void;
   onLine?: (line: string) => void;
+  cwd?: string; // Working directory for the subprocess
 }
 
 export interface CliSpawnResult {
@@ -24,7 +25,7 @@ export interface CliSpawnResult {
  * CRITICAL: Both stdout AND stderr refresh activity timer to prevent false timeout
  */
 export async function spawnCli(options: CliSpawnOptions): Promise<CliSpawnResult> {
-  const { command, args, timeoutMs, signal, onStdout, onStderr, onLine } = options;
+  const { command, args, timeoutMs, signal, onStdout, onStderr, onLine, cwd } = options;
 
   return new Promise((resolve, reject) => {
     const result: CliSpawnResult = {
@@ -86,9 +87,15 @@ export async function spawnCli(options: CliSpawnOptions): Promise<CliSpawnResult
 
     try {
       proc = spawn(command, args, {
-        shell: true,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], // Use pipe for stdin instead of ignore
+        env: process.env, // Inherit parent process environment variables
+        cwd: cwd || process.cwd(), // Use specified working directory or current
       });
+
+      // Close stdin immediately to prevent hanging
+      if (proc.stdin) {
+        proc.stdin.end();
+      }
 
       refreshActivity();
 

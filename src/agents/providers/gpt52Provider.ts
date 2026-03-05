@@ -57,14 +57,20 @@ export class GPT52Provider implements AgentProvider {
     }
 
     if (result.exitCode !== 0) {
-      throw new Error(`CLI process exited with code ${result.exitCode}: ${result.stderr}`);
+      const errorMsg = result.stderr || result.stdout || 'Unknown error';
+      console.error('[GPT52Provider] CLI failed:', {
+        exitCode: result.exitCode,
+        stderr: result.stderr,
+        stdout: result.stdout,
+      });
+      throw new Error(`CLI process exited with code ${result.exitCode}: ${errorMsg}`);
     }
 
     return {
       content: finalContent.trim() || outputBuffer.trim() || result.stdout.trim(),
       metadata: {
         model: 'openai/gpt-5.2',
-        catId: 'architect',
+        catId: request.catId,
         duration: Date.now() - startTime,
       },
     };
